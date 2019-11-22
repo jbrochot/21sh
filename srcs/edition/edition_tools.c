@@ -31,7 +31,10 @@ void	init_shell(t_var *data)
 	data->right = 0;
 	data->quotes = 0;
 	data->dquotes = 0;
+	data->mod_quotes = 0;
+	data->nb_ret = 0;
 	data->std_prompt = 1;
+	data->mod_lines = 1;
 	if (!(data->lex_str = (char*)malloc(sizeof(char) * BUFF_SHELL)))
 			return ;
 	if (!(data->history = (char**)malloc(sizeof(char*) * BUFF_SHELL)))

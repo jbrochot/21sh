@@ -22,6 +22,7 @@ SRC = srcs/core/main.c \
 	  srcs/edition/skip.c \
 	  srcs/edition/copy_paste.c \
 	  srcs/edition/edition_tools.c \
+		srcs/edition/lines.c \
 	  srcs/parser/constructors.c \
 	  srcs/parser/parser.c \
 	  srcs/parser/tokenizer.c \
@@ -48,6 +49,7 @@ OBJ = srcs/core/main.o \
 	  srcs/edition/skip.o \
 	  srcs/edition/copy_paste.o \
 	  srcs/edition/edition_tools.o \
+		srcs/edition/lines.o \
 	  srcs/parser/constructors.o \
 	  srcs/parser/parser.o \
 	  srcs/parser/tokenizer.o \

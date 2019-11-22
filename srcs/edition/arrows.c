@@ -14,7 +14,7 @@
 
 void	move_left(t_var *data)
 {
-	if (data->pos == 0)
+	if (data->pos == 0 || data->lex_str[data->pos - 1] == '\n')
 		return ;
 	if (data->right == 1)
 	{
@@ -52,6 +52,7 @@ void	move_right(t_var *data)
 
 void	move_up(t_var *data)
 {
+	data->mod_lines = 0;
 	if (data->pos < data->nb_cols)
 		return ;
 	if (data->pos - data->nb_cols > 8)
@@ -63,6 +64,7 @@ void	move_up(t_var *data)
 
 void	move_down(t_var *data)
 {
+	data->mod_lines = 0;
 	if (ft_strlen(data->lex_str) <= data->nb_cols
 			|| data->pos == ft_strlen(data->lex_str))
 		return ;

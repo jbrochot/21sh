@@ -27,15 +27,12 @@ void read_quotes(t_var *data)
 		if ((buffer[0] >= 32 && buffer[0] < 127 && buffer[1] == 0))
 		{
 			ft_putchar(buffer[0]);
-			data->lex_str = ft_strjoin_free(data->lex_str, &buffer[0], 0);
-			data->pos++;
+			add_to_string(buffer[0], data);
 			data->char_count++;
 		}
 		if (!ft_strcmp(buffer, RET))
-		{
-				if (check_quotes(data) == 1)
-					read_quotes(data);
-		}
+			if (check_quotes(data) == 1)
+					prompt(data);
 		get_key(data, buffer);
 	}
 }
@@ -47,7 +44,7 @@ static char *quotes_constructor(char *str)
 	return (str);
 }
 
-static int 		returned(t_var *data, int mod)
+static int 		reset_or_construct(t_var *data, int mod)
 {
 	if (mod == 0)
 	{
@@ -99,7 +96,7 @@ int 		check_quotes(t_var *data)
 		i++;
 	}
 	r = (data->quotes % 2 != 0 || data->dquotes % 2 != 0)
-	 		? returned(data, 0) : returned(data, 1);
+	 		? reset_or_construct(data, 0) : reset_or_construct(data, 1);
 	if (r == 0)
 		i = 0;
 	return (r);

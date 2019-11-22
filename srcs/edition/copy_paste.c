@@ -36,8 +36,8 @@ void	select_mode(t_var *data)
 	if (data->in_selection == 0)
 		ft_bzero(data->selection, ft_strlen(data->lex_str));
 	data->in_selection = 1;
-	while (data->selection[i])
-		i++;
+//	while (data->selection[i])
+		i = ft_strlen(data->selection);
 	data->selection[i++] = data->lex_str[data->pos];
 	data->selection[i] = '\0';
 	if (data->tab[data->pos] == 0)
