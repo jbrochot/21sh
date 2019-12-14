@@ -6,7 +6,7 @@
 /*   By: ezonda <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/09/26 14:57:19 by ezonda            #+#    #+#             */
-/*   Updated: 2019/11/08 11:13:13 by ezonda           ###   ########.fr       */
+/*   Updated: 2019/12/14 11:24:19 by ezonda           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,20 +23,15 @@ void		cmd_pipe(t_cmd *cmd, t_var *data)
 		ft_putendl_fd("\n21sh: pipe: syntax error", 2);
 	else if ((pid[0] = fork()) == 0)
 	{
-//		ft_printf("\nget type left1\n");
-//		ft_printf("\npipe0 : %d - pipe1 : %d\n", pipes[0], pipes[1]);
 		dup2(pipes[1], STDOUT_FILENO);
 		close(pipes[0]);
-//		ft_printf("\nget type left2\n");
 		get_cmd_type(pcmd->left, data);
 		exit(0);
 	}
 	if ((pid[1] = fork()) == 0)
 	{
-//		ft_printf("\nget type right1\n");
 		dup2(pipes[0], STDIN_FILENO);
 		close(pipes[1]);
-//		ft_printf("\nget type right2\n");
 		get_cmd_type(pcmd->right, data);
 		exit(0);
 	}
@@ -46,57 +41,95 @@ void		cmd_pipe(t_cmd *cmd, t_var *data)
 	waitpid(-1, 0, 0);
 }
 
-void		heredoc_read(t_var *data)
+int			check_cmd(t_var *data)
 {
-	int i;
-	char buffer[6];
+	char	**split;
 
-	i = 0;
-	data->h_prompt = 1;
-	ft_bzero(data->lex_str, ft_strlen(data->lex_str));
-	prompt(data);
-	while (1)
+	split = ft_strsplit(data->cmds[data->cmd_index], ' ');
+	if (!ft_strcmp(split[0], "<<"))
+		return (0);
+	else
 	{
-		update_data(0, data);
-		ft_bzero(buffer, 6);
-		get_winsize(data);
-		check_overflow(data);
-		read(0, &buffer, sizeof(buffer));
-		if ((buffer[0] >= 32 && buffer[0] < 127 && buffer[1] == 0))
-		{
-			ft_putchar(buffer[0]);
-			data->lex_str = ft_strjoin(data->lex_str, &buffer[0]);
-			data->pos = ft_strlen(data->lex_str);
-			data->char_count++;
-		}
-		if (!ft_strcmp(buffer, RET))
-		{
-			ft_printf("\nRET\n");
-			break ;
-		}
-		get_key(data, buffer);
+		if (!ft_strcmp(split[0], "cat"))
+			data->cat_here = 1;
+		else
+			data->cat_here = 0;
+		return (1);
 	}
-	data->h_prompt = 0;
 }
 
+int			count_redir(t_var *data)
+{
+	int		i;
+	int		count;
+
+	i = 0;
+	count = 0;
+	while (data->lex_str[i])
+	{
+		if (data->lex_str[i] == '>' && data->lex_str[i] + 1 != '>')
+			count++;
+		i++;
+	}
+	return (count);
+}
+/*
+void	test(t_var *data, t_cmd *cmd)
+{
+	int i;
+	t_redirection_cmd	*rcmd;
+
+	i = 0;
+	rcmd = (t_redirection_cmd *)cmd;
+//	ft_printf("\nfile : {%s} - fd : %d\n", rcmd->file, rcmd->fd);
+	data->redir_count++;
+	data->argv = (char**)malloc(sizeof(char*) * 2);
+	if (data->redir_count == data->test)
+	{
+//		ft_putendl_fd("\nlast redir", 0);
+//		getchar();
+		return ;
+	}
+	while (data->cmds[data->cmd_index][i]
+			&& data->cmds[data->cmd_index][i] != '>')
+	{
+		add_to_here_stock(data->cmds[data->cmd_index][i], data);
+		i++;
+	}
+//	ft_printf("\nstock : {%s}\n", data->here_stock);
+	data->argv[0] = ft_strdup(rm_char(data->here_stock, ' '));
+	data->argv[1] = NULL;
+	ft_bzero(data->here_stock, ft_strlen(data->here_stock));
+	init_exec(data);
+//	ft_putendl_fd("\nout test", 0);
+//	getchar();
+//	get_cmd_type(rcmd->cmd, data);
+}
+*/
 void		cmd_redir(t_cmd *cmd, t_var *data)
 {
 	t_redirection_cmd	*rcmd;
+	int					count;
 	int					new_fd;
 	int					back_fd;
 
 	rcmd = (t_redirection_cmd *)cmd;
+	count = count_redir(data);
+	data->test = count_redir(data);
 	if (rcmd->mode == 524)
 	{
 		ft_putchar('\n');
-		data->herend = ft_strdup(rcmd->file);
-		ft_printf("\nHEREDOC - end : {%s}\n", data->herend);
-		heredoc_read(data);
-		return ;
+		data->herend = ft_strdup(rm_char(rcmd->file, ' '));
+		heredoc_prompt(data);
+		if (!check_cmd(data))
+			return ;
 	}
-	if (rcmd->mode != 516)
+	else if (rcmd->mode != 516 && rcmd->mode != 524)
+	{
 		new_fd = open(rcmd->file, rcmd->mode, S_IRUSR | S_IWUSR);
-	else
+		add_to_files(data, rcmd->file);
+	}
+	else if (rcmd->mode == 516)
 		new_fd = open(rcmd->file, O_RDONLY);
 	if (new_fd == -1)
 	{
@@ -107,10 +140,8 @@ void		cmd_redir(t_cmd *cmd, t_var *data)
 	back_fd = dup(rcmd->fd);
 	dup2(new_fd, rcmd->fd);
 	close(new_fd);
-	ft_putchar('\n');
 	get_cmd_type(rcmd->cmd, data);
 	dup2(back_fd, rcmd->fd);
-//	ft_printf("\nEND REDIR\n");
 }
 
 void		cmd_basic(t_cmd *cmd, t_var *data)
@@ -122,24 +153,22 @@ void		cmd_basic(t_cmd *cmd, t_var *data)
 
 	i = 0;
 	ecmd = (t_exec_cmd *)cmd;
-	data->argv = malloc(sizeof(char**) * (ft_lstcount(ecmd->argv) + 1));
-//	data->argv = (char**)malloc(sizeof(char*) * BUFF_SHELL);
+	data->argv = malloc(sizeof(char*) * (ft_lstcount(ecmd->argv) + 1));
 	cur = ecmd->argv;
 	while (cur)
 	{
 		data->argv[i] = cur->content;
-//		ft_printf("\nargv: %s\n", cur->content);
 		cur = cur->next;
 		i++;
 	}
 	data->argv[i] = NULL;
-//	split = ft_strsplit(data->cmds[data->cmd_index], ' ');
-//	while (split[i])
-//	{
-//		data->argv[i] = ft_strdup(split[i]);
-//		i++;
-//	}
-//	data->argv[i] = NULL;
+	if (data->cat_here)
+	{
+		data->cat_here = 0;
+		ft_putstr(data->here_stock);
+		ft_bzero(data->here_stock, ft_strlen(data->here_stock));
+	}
+	i = 0;
 	init_exec(data);
 }
 
@@ -150,10 +179,9 @@ void		get_cmd_type(t_cmd *cmd, t_var *data)
 	char	**bin_path;
 
 	i = 0;
-//	ft_printf("\n\nin cmd_type\n\n");
-	while (is_whitespaces(data->lex_str[i]))
+	while (is_whitespaces(data->cmds[data->cmd_index][i]))
 		i++;
-	if (i == ft_strlen(data->lex_str))
+	if (i == ft_strlen(data->cmds[data->cmd_index]))
 	{
 		ft_putchar('\n');
 		return;
@@ -161,22 +189,9 @@ void		get_cmd_type(t_cmd *cmd, t_var *data)
 	path = get_var("PATH=", data->environ);
 	bin_path = ft_strsplit(path, ':');
 	if (cmd->type == PIPE)
-	{
-//		if (cmd->single_pipe == 1)
-//			ft_printf("\nSINGLE PIPE\n");
-//		ft_printf("\nPIPE\n");
 		cmd_pipe(cmd, data);
-	}
 	else if (cmd->type == REDIR)
-	{
-//		ft_printf("\nREDIR\n");
 		cmd_redir(cmd, data);
-	}
 	else if (cmd->type == BASIC)
-	{
-//		ft_printf("\nBASIC\n");
 		cmd_basic(cmd, data);
-	}
-//	else
-//		ft_printf("\nNO CMD\n");
 }

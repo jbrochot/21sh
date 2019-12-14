@@ -6,7 +6,7 @@
 /*   By: ezonda <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/08/19 10:19:08 by ezonda            #+#    #+#             */
-/*   Updated: 2019/11/08 10:43:37 by ezonda           ###   ########.fr       */
+/*   Updated: 2019/12/14 10:34:24 by ezonda           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@
 # define END		(char[4]){ 27, 91, 70, 0}
 # define UNDO		(char[4]){ 127, 0, 0, 0}
 # define DEL		(char[5]){ 27, 91, 51, 126, 0}
+# define CTRL_D		(char[4]){ 4, 0, 0, 0}
 
 # define TERMCAP(x) tputs(tgetstr(x, NULL), 1, ft_putchar_v2)
 
@@ -60,14 +61,24 @@ typedef struct	s_var
 	int		quotes;
 	int		dquotes;
 	int  	mod_quotes;
-	int   nb_ret;
+	int 	mod_pos;
+	int		mod_ret;
+	int 	mod_lines;
+	int 	nb_ret;
 	char	**argv;
 	char	**cmds;
 	int		cmd_index;
 	int		p_prompt;
 	int		h_prompt;
-	int 	mod_lines;
+	int		n_prompt;
+	int		c_prompt;
 	char	*herend;
+	char	*here_stock;
+	int		cat_here;
+	char	*files;
+	int test;
+	char **stock_test;
+	int redir_count;
 }				t_var;
 
 void			get_input(t_var *data);
@@ -78,6 +89,7 @@ void			move_left(t_var *data);
 void			move_right(t_var *data);
 void			move_up(t_var *data);
 void			move_down(t_var *data);
+void 			termc_up(t_var *data);
 
 void			add_to_string(char c, t_var *data);
 void			realloc_str(char c, t_var *data);
@@ -91,6 +103,8 @@ void			update_history(t_var *data);
 void			prompt(t_var *data);
 void			get_winsize(t_var *data);
 void			get_curs_pos(t_var *data, int index);
+void 			get_curs_pos_line(t_var *data, int current_ret);
+void 			pos_curs_line(t_var *data);
 
 void			jump(t_var *data, int mod);
 void			get_prev_word(t_var *data);
@@ -107,7 +121,18 @@ void			odd_quotes(t_var *data);
 void			check_single_pipes(t_var *data);
 void			get_last_pipe(t_var *data, int index);
 
-void 			count_ret(t_var *data);
-int  			count_char_line(t_var *data);
+void			add_to_here_stock(char c, t_var *data);
+void			check_first_last_char(t_var *data, int mod);
+char			*rm_char(char *str, char c);
+void			rm_herend(t_var *data);
+
+void			new_prompt(t_var *data);
+void			cursh_prompt(t_var *data);
+void			pipe_prompt(t_var *data, int index);
+void			heredoc_prompt(t_var *data);
+
+void 			count_ret(t_var *data, int pos);
+int  			how_many_before(t_var *data, int pos);
+int   		count_current_ret(t_var *data);
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: ezonda <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/08/26 13:21:59 by ezonda            #+#    #+#             */
-/*   Updated: 2019/10/22 13:03:00 by ezonda           ###   ########.fr       */
+/*   Updated: 2019/12/10 07:10:56 by ezonda           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ void	add_to_history(t_var *data)
 	while (is_whitespaces(data->lex_str[i]))
 		i++;
 	if (i == ft_strlen(data->lex_str))
-		return;
+		return ;
 	i = 0;
 	if (!data->history[0])
 		data->history[i] = ft_strdup(data->lex_str);
@@ -43,7 +43,6 @@ void	show_history(t_var *data, int mod)
 {
 	static int i;
 
-	data->mod_lines = 0;
 	if (data->new_history == 1)
 	{
 		data->new_history = 0;
@@ -63,11 +62,17 @@ void	show_history(t_var *data, int mod)
 		if (!data->history[i])
 		{
 			i++;
+			if (i == 0)
+				ft_bzero(data->lex_str, ft_strlen(data->lex_str));
+			TERMCAP("cl");
+			data->pos = ft_strlen(data->lex_str);
+			prompt(data);
 			return ;
 		}
 		ft_bzero(data->lex_str, ft_strlen(data->lex_str));
 		data->lex_str = ft_strcpy(data->lex_str, data->history[i]);
 	}
+	TERMCAP("cl");
 	data->pos = ft_strlen(data->lex_str);
 	prompt(data);
 }

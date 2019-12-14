@@ -14,13 +14,13 @@
 
 void	add_to_string(char c, t_var *data)
 {
-		if (data->pos == data->char_count)
-		{
-			data->lex_str[data->pos++] = c;
-			data->lex_str[data->pos] = '\0';
-		}
-		else
-			realloc_str(c, data);
+	if (data->pos == data->char_count)
+	{
+		data->lex_str[data->pos++] = c;
+		data->lex_str[data->pos] = '\0';
+	}
+	else
+		realloc_str(c, data);
 }
 
 void	realloc_str(char c, t_var *data)
@@ -53,9 +53,6 @@ void	remove_prev_char(t_var *data)
 	i = data->pos - 1;
 	if (!data->lex_str[0])
 		return ;
-	if (data->quotes % 2 != 0 || data->dquotes % 2 != 0)
-		if (data->lex_str[i] == '\n')
-			return ;
 	while (data->lex_str[i])
 	{
 		data->lex_str[i] = data->lex_str[i + 1];
